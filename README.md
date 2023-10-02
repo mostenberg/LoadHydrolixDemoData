@@ -28,4 +28,6 @@ Plan is to add special purpose datasets also to allow demoing how to 'find' issu
 
 ## Configuring
 
+You can use the existing data format template and add other templates for different data types. Whenver an array of values is available for a data field, the code will randomly pick from the values.
+
 ### Debugging
