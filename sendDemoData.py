@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 # Trying for bulk request
 
 
-def sendDataToTrafficPeak(url, username, password, count, jsonData):
+def sendDataToTrafficPeak(templateFileName, count):
     """This function will send data to TrafficPeak:
     url: The URL for the data ingest endpoint. 
     username: The username for data ingest endpoint
@@ -19,8 +19,26 @@ def sendDataToTrafficPeak(url, username, password, count, jsonData):
     count: how many records to send
     jsonData: A json object outlining the type of log data to send to simulate DS2 data. (URL,country,response code etc)
     """
+
+    # Read the URL, username and password from the local file trafficPeakparams.json
+    localDirectory = os.path.dirname(os.path.abspath(__file__))
+    file = "trafficPeakparams.json"
+    fileWithPath = (f"{localDirectory}/{file}")
+    f = open(fileWithPath, "r")  # Read the doc from a file
+    trafficPeak = json.loads(f.read(-1))
+    f.close
+
+    # Read the template file into a JSON string
+    localDirectory = os.path.dirname(os.path.abspath(__file__))
+    fileWithPath = (f"{localDirectory}/{templateFileName}")
+    f = open(fileWithPath, "r")  # Read the doc from a file
+    jsonData = f.read(-1)  # Read the entire file into sendBody variable
+    jsonData = jsonData.replace("\n", "")  # Strip any newlines
+    f.close
+
+    # prepare the file which will have all the log lines
     headers = {"Content-type": "application/json"}
-    auth = (username, password)
+    auth = (trafficPeak["username"], trafficPeak["password"])
     # This is where we will store the large file we're creating with 'count' request records
     bulkFile = open("bulkFile.txt", "w")
     # File will represent log lines as an array of JSON objects. This opens the array.
@@ -49,64 +67,25 @@ def sendDataToTrafficPeak(url, username, password, count, jsonData):
     bulkFile.write("]")
     bulkFile.close()
 
-    # Trying for bulk request
+    # Open for bulk request
     f = open("bulkFile.txt", "r")
-
     # Send the data to TrafficPeak and get response:
     sendBody = f.read(-1)
-    r = requests.post(url, data=sendBody, headers=headers, auth=auth)
+    r = requests.post(trafficPeak["ingestURL"],
+                      data=sendBody, headers=headers, auth=auth)
+    f.close
+    print(f"File: {templateFileName} sent.\tCount: {count}\t\tResponse:{r.text}")
     return r.text
 
 
-localDirectory = os.path.dirname(os.path.abspath(__file__))
-file = "trafficPeakparams.json"
-fileWithPath = (f"{localDirectory}/{file}")
-f = open(fileWithPath, "r")  # Read the doc from a file
-trafficPeak = json.loads(f.read(-1))
-
 # Send general data. Several file types, mostly 200 responses
-#
-localDirectory = os.path.dirname(os.path.abspath(__file__))
-file = "ds2TemplateGeneralData.json"
-fileWithPath = (f"{localDirectory}/{file}")
-f = open(fileWithPath, "r")  # Read the doc from a file
-myJsonData = f.read(-1)  # Read the entire file into sendBody variable
-myJsonData = myJsonData.replace("\n", "")  # Strip any newlines
-print("\n******** JSON Data:\n")
-print(myJsonData)
-print("\n********\n")
-
-myResponse = sendDataToTrafficPeak(
-    trafficPeak["ingestURL"], trafficPeak["username"], trafficPeak["password"], 10000, myJsonData)
-print("\n****RESPONSE: \n")
-print(myResponse)
-f.close
+myResponse = sendDataToTrafficPeak("ds2TemplateGeneralData.json", 1000)
 
 # Send data for some large files
-file = "ds2TemplateLargeFiles.json"
-fileWithPath = (f"{localDirectory}/{file}")
-f = open(fileWithPath, "r")  # Read the doc from a file
-myJsonData = f.read(-1)  # Read the entire file into sendBody variable
-myJsonData = myJsonData.replace("\n", "")  # Strip any newlines
-print("\n***JSON DATA2\n")
-print(myJsonData)
-print("\n***RESPONSE 2\n")
-myResponse = sendDataToTrafficPeak(
-    trafficPeak["ingestURL"], trafficPeak["username"], trafficPeak["password"], 10000, myJsonData)
-print(myResponse)
-print("\n********\n")
+myResponse = sendDataToTrafficPeak("ds2TemplateLargeFiles.json", 1000)
 
 # Next, send some sample requests with errors 401,403,302 etc
-file = "ds2TemplateErrorRequests.json"
-fileWithPath = (f"{localDirectory}/{file}")
-f = open(fileWithPath, "r")  # Read the doc from a file
-myJsonData = f.read(-1)  # Read the entire file into sendBody variable
-myJsonData = myJsonData.replace("\n", "")  # Strip any newlines
-print("\n***JSON DATA2\n")
-print(myJsonData)
-print("\n***RESPONSE 2\n")
-myResponse = sendDataToTrafficPeak(
-    trafficPeak["ingestURL"], trafficPeak["username"], trafficPeak["password"], 1000, myJsonData)
-print(myResponse)
-print("\n********\n")
-f.close
+myResponse = sendDataToTrafficPeak("ds2TemplateErrorRequests.json", 1000)
+
+# Next, send some sample requests with errors 401,403,302 etc
+myResponse = sendDataToTrafficPeak("ds2CMCDGood.json", 1000)
