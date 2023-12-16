@@ -49,7 +49,7 @@ def sendDataToTrafficPeak(templateFileName, count):
         # print(f"x is {x}")
         jsonObj = json.loads(jsonData)  # Turns file json into object
         # By default, these requests will use random timestamps over the past 24 hours
-        jsonObj["reqTimeSec"] = int(time.time()-random.randrange(1, 60*60*24))
+        jsonObj["reqTimeSec"] = int(time.time()-random.randrange(1, 60))
 
         for key in jsonObj:  # Loop through all elements of send data
             # If list of values is provided, randomly pick one
@@ -79,19 +79,6 @@ def sendDataToTrafficPeak(templateFileName, count):
 
 
 # Send general data. Several file types, mostly 200 responses
-myResponse = sendDataToTrafficPeak("ds2TemplateGeneralDataCached.json", 40000)
+# myResponse = sendDataToTrafficPeak("ds2TemplateGeneralDataCached.json", 40000)
 
-# Send general uncached data. Several file types, mostly 200 responses
-myResponse = sendDataToTrafficPeak("ds2TemplateGeneralDataUncached.json", 5000)
-
-# Send data for some large files cached
-myResponse = sendDataToTrafficPeak("ds2TemplateLargeFilesCached.json", 40000)
-
-# Send data for some large files uncached
-myResponse = sendDataToTrafficPeak("ds2TemplateLargeFilesUncached.json", 2000)
-
-# Next, send some sample requests with errors 401,403,302 etc
-myResponse = sendDataToTrafficPeak("ds2TemplateErrorRequests.json", 2000)
-
-# Next, send some sample requests with errors 401,403,302 etc
-myResponse = sendDataToTrafficPeak("ds2CMCDGood.json", 10000)
+myResponse = sendDataToTrafficPeak("singleRequest.json", 100)

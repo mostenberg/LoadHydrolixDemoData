@@ -51,12 +51,12 @@
     "POST"
   ],
   "reqPath": [
-    "/my/animated/file.gif",
-    "/fancy/movie.mpg",
-    "/big/file/movie.mpg",
-    "/another/animation.gif",
-    "/fancy/transition.gif",
-    "/movie/content/trailer.mpg"
+    "my/animated/file.gif",
+    "fancy/movie.mpg",
+    "big/file/movie.mpg",
+    "another/animation.gif",
+    "fancy/transition.gif",
+    "movie/content/trailer.mpg"
   ],
   "reqPort": "443",
   "rspContentLen": "5000",
