@@ -39,7 +39,7 @@
     "200"
   ],
   "proto": "HTTPS",
-  "reqHost": ["www.mysite.com", "1k.mysite.com"],
+  "reqHost": ["www.mysite.com", "www.mysite.com","www.mysite.com","www.mysite.com","www.mysite.com","www.mysite.com","qa.mysite.com"],
   "reqMethod": [
     "GET",
     "GET",
