@@ -4,11 +4,19 @@ import json
 import time
 import random
 import os
+import gzip
 import urllib
 import logging
 from urllib.parse import urlparse
+import time
 
 # Trying for bulk request
+
+
+def compress_file(input_file, output_file):
+    with open(input_file, 'rb') as f_in:
+        with gzip.open(output_file, 'wb') as f_out:
+            f_out.writelines(f_in)
 
 
 def sendDataToTrafficPeak(templateFileName, count):
@@ -66,17 +74,55 @@ def sendDataToTrafficPeak(templateFileName, count):
 
     bulkFile.write("]")
     bulkFile.close()
+    file_size = os.stat("bulkFile.txt")
 
-    # Open for bulk request
-    f = open("bulkFile.txt", "r")
+    # Now zip the file bulkfile.txt
+    file_name = 'bulkFile.gz'
+
+    # Create a gzip compressed file
+    start_compress = time.time()
+    with open('bulkFile.txt', 'rb') as f_in:
+        with gzip.open(file_name, 'wb') as f_out:
+            f_out.writelines(f_in)
+    end_compress = time.time()
+    compress_time = end_compress - start_compress
+
+    # Specify the file name
+    file_size_gz = os.stat(file_name)
+
+    # Read the content of the gzipped file into a variable
+    with open(file_name, 'rb') as file_content:
+        content = file_content.read()
+
+    # Additional headers for the request
+    headers = {
+        'Content-Type': 'application/json',
+        'Accept-Encoding': 'gzip',
+        'Content-Encoding': 'gzip',
+        'User-Agent': 'YourApp/1.0',  # Replace with your application's user agent
+    }
+
+    response = requests.post(
+        trafficPeak['ingestURL'], data=content, headers=headers, auth=auth)
+
+    # Print the response
+    print(response.text)
     # Send the data to TrafficPeak and get response:
-    sendBody = f.read(-1)
-    r = requests.post(trafficPeak["ingestURL"],
-                      data=sendBody, headers=headers, auth=auth)
-    f.close
-    print(f"File: {templateFileName} sent.\tCount: {count}\t\tResponse:{r.text}")
-    return r.text
+    # sendBody = f.read(-1)
+    # r = requests.post(trafficPeak["ingestURL"],
+    #                  data=sendBody, headers=headers, auth=auth)
+    # f.close
 
+    # Report results
+    print(
+        f"File: {templateFileName} sent.\tCount: {count}\t\tResponse:{response.text}")
+    print(
+        f"\t\tUncompressed is: {file_size.st_size:,} , Compressed: {file_size_gz.st_size:,}, Ratio:{file_size.st_size/file_size_gz.st_size:,.1f}, CompressTime: {compress_time:,.2f} ")
+
+    return response.text
+
+
+start_time = time.time()
 
 # Send general data. Several file types, mostly 200 responses
 myResponse = sendDataToTrafficPeak("ds2TemplateGeneralDataCached.json", 40000)
@@ -95,3 +141,11 @@ myResponse = sendDataToTrafficPeak("ds2TemplateErrorRequests.json", 2000)
 
 # Next, send some sample requests with errors 401,403,302 etc
 myResponse = sendDataToTrafficPeak("ds2CMCDGood.json", 10000)
+
+
+end_time = time.time()
+# Calculate the overall execution time
+execution_time = end_time - start_time
+
+# Print the execution time
+print(f"Overall execution time: {execution_time:.2f} seconds")
